@@ -1,4 +1,5 @@
 import java.io.*;
+import java.util.*;
 
 /**
  * Opens a given file and returns a string consisting of the entire files contents. Prints to the console
@@ -9,7 +10,7 @@ import java.io.*;
 public class FileOpener
 {
     // Holds the contents of the opened file.
-    private String filecontents;
+    private LinkedList<String> filecontents = new LinkedList<String>();
 
     /**
      * Constructor takes file location as input, opens the file, copies contents to filelocation global String, then
@@ -27,9 +28,10 @@ public class FileOpener
             String line = fin.readLine();
             while(line != null)
             {
-                filecontents = filecontents + line;
+                filecontents.add(line);
                 line = fin.readLine();
             }
+            fin.close();
         }
         catch(FileNotFoundException e)
         {
@@ -41,7 +43,7 @@ public class FileOpener
         }
     }
 
-    public String getContents()
+    public LinkedList<String> getContents()
     {
         return filecontents;
     }
