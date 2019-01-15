@@ -18,4 +18,9 @@ public class FileOpener
     {
 
     }
+
+    public String getContents()
+    {
+        return filecontents;
+    }
 }
