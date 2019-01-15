@@ -1,4 +1,7 @@
-/** Main class which pipelines stages of compilation and interacts with the user taking in file to be compiled. Creates
+import java.io.*;
+
+/**
+ * Main class which pipelines stages of compilation and interacts with the user taking in file to be compiled. Creates
  * target file with compiled source code at the end of comilation.
  *
  * @author Michael Connor
