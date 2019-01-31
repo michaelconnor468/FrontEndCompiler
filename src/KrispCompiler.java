@@ -40,5 +40,10 @@ public class KrispCompiler
         {
             System.out.println("You need to provide an output code file as the second command line argument");
         }
+
+        Hashtable<Token, Integer> idHashTable = new Hashtable<Token, Integer>();
+        TokenPreParser preParser = new TokenPreParser(krispCode);
+        LinkedList<LinkedList<String>> preParsedCode = preParser.getPreParsedList();
+        TokenGenerator tg = new TokenGenerator(preParsedCode);
     }
 }
