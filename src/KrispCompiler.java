@@ -11,7 +11,7 @@ public class KrispCompiler
 {
     /**
      * Calls on all operations of the front end compiler using code from given file and outputs compiled code into
-     * requested file.
+     * requested file. First argument is input, second is output.
      *
      * @param args - File read and final product write location
      * @author Michael Connor
@@ -44,6 +44,13 @@ public class KrispCompiler
         Hashtable<Token, Integer> idHashTable = new Hashtable<Token, Integer>();
         TokenPreParser preParser = new TokenPreParser(krispCode);
         LinkedList<LinkedList<String>> preParsedCode = preParser.getPreParsedList();
+        for(LinkedList<String> x : preParsedCode)
+        {
+            for(String y : x)
+            {
+                System.out.println(y);
+            }
+        }
         TokenGenerator tg = new TokenGenerator(preParsedCode);
     }
 }

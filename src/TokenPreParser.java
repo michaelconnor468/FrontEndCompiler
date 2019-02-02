@@ -29,28 +29,51 @@ public class TokenPreParser
 
     /**
      * Returns the pre-parsed linked list in which every string separated by a space has been isolated. Performs this
-     * using the krispCode the class was initialized with.
+     * using the krispCode the class was initialized with. Also separates parentheses, brackets and end of line
+     * characters.
      *
      * @return returns a pre-parsed list where every string separated by a space has been isolated
      * @author Michael Connor
      */
     public LinkedList<LinkedList<String>> getPreParsedList()
     {
-        int currentChar = 0;
+        LinkedList<String> lineList = new LinkedList<>();
         for (String temp : krispCode)
         {
             StringBuilder tempsb = new StringBuilder(temp);
-            if(tempsb.charAt(0) != ' ')
+            while(tempsb.charAt(0) != '\n')
             {
-                //stringBuffer.append(tempsb.charAt(currentChar));
-                currentChar++;
+                if((tempsb.charAt(0) == '(') || (tempsb.charAt(0) == ')') || (tempsb.charAt(0) == '}') ||
+                        (tempsb.charAt(0) == '{') || (tempsb.charAt(0) == ';'))
+                {
+                    if(stringBuffer.toString().length() != 0)
+                    {
+                        lineList.add(stringBuffer.toString());
+                        stringBuffer = new StringBuilder();
+                    }
+                    stringBuffer.append(tempsb.charAt(0));
+                    tempsb.deleteCharAt(0);
+                    lineList.add(stringBuffer.toString());
+                    stringBuffer = new StringBuilder();
+                }
+                else if(tempsb.charAt(0) != ' ')
+                {
+                    stringBuffer.append(tempsb.charAt(0));
+                    tempsb.deleteCharAt(0);
+                }
+                else
+                {
+                    if(stringBuffer.toString().length() != 0)
+                    {
+                        lineList.add(stringBuffer.toString());
+                        stringBuffer = new StringBuilder();
+                    }
+                    tempsb.deleteCharAt(0);
+                }
             }
-            else
-            {
-                //String tempString = stringBuffer.toString();
-                currentChar++;
-            }
-            currentChar = 0;
+            separatedCode.add(lineList);
+            lineList = new LinkedList<>();
         }
+        return separatedCode;
     }
 }
