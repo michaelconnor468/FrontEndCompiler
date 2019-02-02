@@ -41,7 +41,7 @@ public class TokenPreParser
         for (String temp : krispCode)
         {
             StringBuilder tempsb = new StringBuilder(temp);
-            while(tempsb.charAt(0) != '\n')
+            while((tempsb.length() != 0)&&(tempsb.charAt(0) != '\n'))
             {
                 if((tempsb.charAt(0) == '(') || (tempsb.charAt(0) == ')') || (tempsb.charAt(0) == '}') ||
                         (tempsb.charAt(0) == '{') || (tempsb.charAt(0) == ';'))
@@ -60,6 +60,11 @@ public class TokenPreParser
                 {
                     stringBuffer.append(tempsb.charAt(0));
                     tempsb.deleteCharAt(0);
+                    if((stringBuffer.length() != 0)&&(temp.length() == 0))
+                    {
+                        lineList.add(stringBuffer.toString());
+                        stringBuffer = new StringBuilder();
+                    }
                 }
                 else
                 {
@@ -70,6 +75,11 @@ public class TokenPreParser
                     }
                     tempsb.deleteCharAt(0);
                 }
+            }
+            if(stringBuffer.toString().length() != 0)
+            {
+                lineList.add(stringBuffer.toString());
+                stringBuffer = new StringBuilder();
             }
             separatedCode.add(lineList);
             lineList = new LinkedList<>();

@@ -30,27 +30,21 @@ public class KrispCompiler
             System.out.println("You need to provide an input code file as the first command line argument");
         }
 
+        Hashtable<Token, Integer> idHashTable = new Hashtable<Token, Integer>();
+        TokenPreParser preParser = new TokenPreParser(krispCode);
+        LinkedList<LinkedList<String>> preParsedCode = preParser.getPreParsedList();
 
         //Writes compiled code to given file.
         try
         {
-            CodeWriter codeWriter = new CodeWriter(args[1], krispCode);
+            CodeWriter codeWriter = new CodeWriter(args[1], preParsedCode.getFirst());
         }
         catch(ArrayIndexOutOfBoundsException e)
         {
             System.out.println("You need to provide an output code file as the second command line argument");
         }
 
-        Hashtable<Token, Integer> idHashTable = new Hashtable<Token, Integer>();
-        TokenPreParser preParser = new TokenPreParser(krispCode);
-        LinkedList<LinkedList<String>> preParsedCode = preParser.getPreParsedList();
-        for(LinkedList<String> x : preParsedCode)
-        {
-            for(String y : x)
-            {
-                System.out.println(y);
-            }
-        }
+
         //TokenGenerator tg = new TokenGenerator(preParsedCode);
     }
 }
