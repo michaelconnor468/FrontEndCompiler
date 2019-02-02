@@ -7,6 +7,7 @@ import java.util.*;
  */
 public class TokenGenerator
 {
+    /*
     private LinkedList<LinkedList<String>> preParsedCode;
 
     public TokenGenerator(LinkedList<LinkedList<String>> preParsedCode)
@@ -23,4 +24,5 @@ public class TokenGenerator
     {
 
     }
+    */
 }

@@ -51,6 +51,6 @@ public class KrispCompiler
                 System.out.println(y);
             }
         }
-        TokenGenerator tg = new TokenGenerator(preParsedCode);
+        //TokenGenerator tg = new TokenGenerator(preParsedCode);
     }
 }
