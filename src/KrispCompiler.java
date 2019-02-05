@@ -30,7 +30,7 @@ public class KrispCompiler
             System.out.println("You need to provide an input code file as the first command line argument");
         }
 
-        Hashtable<String, Integer> idHashTable = new Hashtable<String, Integer>();
+        Hashtable<String, String> idHashTable = new Hashtable<String, String>();
         TokenPreParser preParser = new TokenPreParser(krispCode);
         LinkedList<LinkedList<String>> preParsedCode = preParser.getPreParsedList();
 
