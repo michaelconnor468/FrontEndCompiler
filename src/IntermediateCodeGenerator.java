@@ -2,9 +2,13 @@ import java.util.*;
 
 public class IntermediateCodeGenerator
 {
-    LinkedList<LinkedList<Token>> tokenCode;
-    LinkedList<String> assemblyCode;
-    int assemblyLine = 0;
+    private LinkedList<LinkedList<Token>> tokenCode;
+    private LinkedList<Token> tokenLine;
+    private LinkedList<String> assemblyCode;
+    private Token currentToken;
+    private Token lookaheadToken;
+    private int assemblyLine = 0;
+    private int currentLine = 0;
 
     /**
      * Initializes local variable tokenCode to linked list of tokens given to the code generator as an argument.
@@ -16,6 +20,19 @@ public class IntermediateCodeGenerator
     {
         assemblyCode = new LinkedList<>();
         this.tokenCode = tokenCode;
+        if(tokenCode.isEmpty())
+        {
+            System.err.println("Error: Nothing to compile.");
+            System.exit(-1);
+        }
+        tokenLine = tokenCode.pop();
+        if(tokenLine.size() < 2)
+        {
+            System.err.println("Syntax Error");
+            System.exit(-1);
+        }
+        currentToken = tokenLine.pop();
+        lookaheadToken = tokenLine.pop();
     }
 
     /**
@@ -26,17 +43,6 @@ public class IntermediateCodeGenerator
      */
     public LinkedList<String> generateAssembly()
     {
-        int currentLine = 0;
-        Stack<Integer> gotoStack = new Stack<>();
-        Stack<Integer> branchLineStack = new Stack<>();
-        for(LinkedList<Token> line: tokenCode)
-        {
-            currentLine++;
-            for(Token token: line)
-            {
 
-            }
-        }
-        return assemblyCode;
     }
 }
