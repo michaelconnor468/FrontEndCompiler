@@ -37,10 +37,12 @@ public class KrispCompiler
         TokenGenerator tokenGenerator = new TokenGenerator(preParsedCode);
         LinkedList<LinkedList<Token>> tokenCode = tokenGenerator.generateTokenList();
 
+        IntermediateCodeGenerator intermediateCodeGenerator = new IntermediateCodeGenerator(tokenCode);
+        LinkedList<String> intermediateCode = intermediateCodeGenerator.generateAssembly();
         //Writes compiled code to given file.
         try
         {
-            CodeWriter codeWriter = new CodeWriter(args[1], preParsedCode.getFirst());
+            CodeWriter codeWriter = new CodeWriter(args[1], intermediateCode);
         }
         catch(ArrayIndexOutOfBoundsException e)
         {

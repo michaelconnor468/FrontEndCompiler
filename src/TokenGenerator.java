@@ -65,6 +65,9 @@ public class TokenGenerator
             }
             tokenCode.add(tokenLine);
         }
+        LinkedList<Token> tempTokenLine = new LinkedList<Token>();
+        tempTokenLine.add(new EndToken());
+        tokenCode.add(tempTokenLine);
         return tokenCode;
     }
 }

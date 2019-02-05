@@ -24,7 +24,7 @@ public class KeyToken extends Token
     }
 
     /**
-     * Returns the ky type of this Token instance
+     * Returns the key type of this Token instance
      *
      * @return keyType - the key type of this Token instance
      * @author Michael Connor

@@ -1,5 +1,7 @@
 /**
- * Abstract class meant to represent a lexeme token which is outputted during lexical parsing
+ * Abstract class meant to represent a lexeme token which is outputted during lexical parsing. Also provides static
+ * methods to check the type of key
+ *
  * @author Michael Connor
  */
 public class Token
@@ -39,10 +41,10 @@ public class Token
     {
         boolean key = false;
         if((str.equals("if")) ||  (str.equals("goto")) || (str.equals("while")) || (str.equals("assign")) ||
-                (str.equals("x")) || (str.equals("+")) || (str.equals("-")) || (str.equals("/")) ||
+                (str.equals("*")) || (str.equals("+")) || (str.equals("-")) || (str.equals("/")) ||
                 (str.equals("and")) || (str.equals("or")) || (str.equals("nor")) || (str.equals("nand")) ||
                 (str.equals("=")) ||
-                (str.equals(">")) || (str.equals("<")) || (str.equals(";")) || (str.equals("(")) ||
+                (str.equals(">")) || (str.equals("<"))  || (str.equals("(")) ||
                 (str.equals(")")) || (str.equals("{")) || (str.equals("}")))
         {
             key = true;
@@ -57,11 +59,30 @@ public class Token
      * @return key - true if operator false if not
      * @author Michael Connor
      */
-    public boolean isOperator(String str)
+    public static boolean isOperator(String str)
     {
         boolean key = false;
-        if( (str.equals("x")) || (str.equals("+")) || (str.equals("-")) || (str.equals("/")) ||
+        if( (str.equals("*")) || (str.equals("+")) || (str.equals("-")) || (str.equals("/")) ||
                 (str.equals("and")) || (str.equals("or")) || (str.equals("nor")) || (str.equals("=")) ||
+                (str.equals(">")) || (str.equals("<"))  ||
+                (str.equals("nand")))
+        {
+            key = true;
+        }
+        return key;
+    }
+
+    /**
+     * Returns true if the given string is a operator, false otherwise.
+     *
+     * @param str - the string to compare with key values
+     * @return key - true if operator false if not
+     * @author Michael Connor
+     */
+    public static boolean isBoolOperator(String str)
+    {
+        boolean key = false;
+        if((str.equals("and")) || (str.equals("or")) || (str.equals("nor")) || (str.equals("=")) ||
                 (str.equals(">")) || (str.equals("<"))  ||
                 (str.equals("nand")))
         {

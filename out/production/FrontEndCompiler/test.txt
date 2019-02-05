@@ -1,3 +1,2 @@
-abc d e f
-(ghi jk123 24423;342
-1234;
+abc assign 2
+b assign 4
