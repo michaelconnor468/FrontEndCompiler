@@ -29,5 +29,5 @@ public class KeyToken extends Token
      * @return keyType - the key type of this Token instance
      * @author Michael Connor
      */
-    public String getKeyType() {return keyType}
+    public String getKeyType() {return keyType;}
 }

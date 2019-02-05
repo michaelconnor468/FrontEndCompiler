@@ -28,5 +28,5 @@ public class NumberToken extends Token
      * @return keyType - the key type of this Token instance
      * @author Michael Connor
      */
-    public String getNumber() {return number}
+    public int getNumber() {return number;}
 }

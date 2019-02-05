@@ -29,5 +29,5 @@ public class IdentifierToken extends Token
      * @return keyType - the identifier type of this Token instance
      * @author Michael Connor
      */
-    public String getIdentifier() {return identifier}
+    public String getIdentifier() {return identifier;}
 }
