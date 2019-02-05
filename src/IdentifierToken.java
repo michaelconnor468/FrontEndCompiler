@@ -34,6 +34,6 @@ public class IdentifierToken extends Token
     @Override
     public String toString()
     {
-        return "<num," + identifier + ">";
+        return "<id," + identifier + ">";
     }
 }

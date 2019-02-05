@@ -1,1 +1,4 @@
 movc  &v0, @2
+movc  &v1, @4
+movc  &v0, @8
+movr  &v2, $v1

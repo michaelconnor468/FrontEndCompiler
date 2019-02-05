@@ -1,2 +1,5 @@
 abc assign 2
 b assign 4
+abc assign 8
+tr assign b
+abc assign b

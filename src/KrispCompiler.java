@@ -39,7 +39,8 @@ public class KrispCompiler
 
         IntermediateCodeGenerator intermediateCodeGenerator = new IntermediateCodeGenerator(tokenCode);
         LinkedList<String> intermediateCode = intermediateCodeGenerator.generateAssembly();
-        //Writes compiled code to given file.
+        //Writes compiled code to given file
+
         try
         {
             CodeWriter codeWriter = new CodeWriter(args[1], intermediateCode);
@@ -48,7 +49,6 @@ public class KrispCompiler
         {
             System.out.println("You need to provide an output code file as the second command line argument");
         }
-
 
         //TokenGenerator tg = new TokenGenerator(preParsedCode);
     }

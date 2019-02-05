@@ -30,14 +30,6 @@ public class IntermediateCodeGenerator
             System.err.println("Error: Nothing to compile.");
             System.exit(-1);
         }
-        tokenLine = tokenCode.pop();
-        if(tokenLine.size() < 2)
-        {
-            System.err.println("Syntax Error");
-            System.exit(-1);
-        }
-        currentToken = tokenLine.pop();
-        lookaheadToken = tokenLine.pop();
     }
 
     /**
@@ -48,9 +40,26 @@ public class IntermediateCodeGenerator
      */
     public LinkedList<String> generateAssembly()
     {
-        while((!tokenCode.isEmpty())||(!tokenLine.peek().getTokenType().equals("End")))
+        while(!tokenCode.isEmpty())
         {
-            if(currentToken.getTokenType().equals("Id"))
+            tokenLine = tokenCode.pop();
+            if(tokenLine.size() < 1)
+            {
+                System.err.println("Syntax Error");
+                System.exit(-1);
+            }
+            currentToken = tokenLine.pop();
+            if(currentToken.getTokenType().equals("End"))
+            {
+                break;
+            }
+            else if(tokenLine.size() < 1)
+            {
+                System.err.println("Syntax Error");
+                System.exit(-1);
+            }
+            lookaheadToken = tokenLine.pop();
+            if (currentToken.getTokenType().equals("Id"))
             {
                 parseAssign();
             }
@@ -82,7 +91,7 @@ public class IntermediateCodeGenerator
         IdentifierToken tempToken = (IdentifierToken) this.currentToken;
         String assignVariable = tempToken.getIdentifier();
         int assignVariableReg;
-        if(identifierHash.contains(assignVariable))
+        if(identifierHash.containsKey(assignVariable))
         {
             assignVariableReg = identifierHash.get(assignVariable);
         }
@@ -108,12 +117,24 @@ public class IntermediateCodeGenerator
         }
         else if(tokenLine.isEmpty())
         {
-            tokenLine = tokenCode.pop();
             if(lookaheadType.equals("Num"))
             {
                 NumberToken numToken = (NumberToken)lookaheadToken;
                 assemblyCode.add("movc  &v" + Integer.toString(assignVariableReg) + ", @" +
                         Integer.toString(numToken.getNumber()));
+                assemblyLine++;
+            }
+            else
+            {
+                IdentifierToken idToken = (IdentifierToken)lookaheadToken;
+                if(!identifierHash.containsKey(idToken.getIdentifier()))
+                {
+                    System.out.println("Syntax Error: Declare" + ((IdentifierToken) lookaheadToken).getIdentifier() +
+                            "before using it");
+                    System.exit(-1);
+                }
+                assemblyCode.add("movr  &v" + Integer.toString(assignVariableReg) + ", $v" +
+                        Integer.toString(identifierHash.get(idToken.getIdentifier())));
                 assemblyLine++;
             }
         }
@@ -132,12 +153,10 @@ public class IntermediateCodeGenerator
                 parseBool();
                 assemblyCode.add("movr &v" + Integer.toString(assignVariableReg) + ", $"+ returnReg );
                 assemblyLine++;
-                tokenLine = tokenCode.pop();
             }
             parseExpression();
             assemblyCode.add("movr &v" + Integer.toString(assignVariableReg) + ", $"+ returnReg );
             assemblyLine++;
-            tokenLine = tokenCode.pop();
         }
     }
 
