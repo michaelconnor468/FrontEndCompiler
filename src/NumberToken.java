@@ -29,4 +29,9 @@ public class NumberToken extends Token
      * @author Michael Connor
      */
     public int getNumber() {return number;}
+
+    @Override
+    public String toString() {
+        return "<num," + Integer.toString(number) + ">";
+    }
 }

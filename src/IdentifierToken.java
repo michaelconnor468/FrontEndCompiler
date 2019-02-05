@@ -30,4 +30,10 @@ public class IdentifierToken extends Token
      * @author Michael Connor
      */
     public String getIdentifier() {return identifier;}
+
+    @Override
+    public String toString()
+    {
+        return "<num," + identifier + ">";
+    }
 }

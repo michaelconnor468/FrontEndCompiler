@@ -30,4 +30,10 @@ public class KeyToken extends Token
      * @author Michael Connor
      */
     public String getKeyType() {return keyType;}
+
+    @Override
+    public String toString()
+    {
+        return "<key," + keyType + ">";
+    }
 }

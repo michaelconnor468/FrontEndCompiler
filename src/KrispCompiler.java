@@ -30,9 +30,12 @@ public class KrispCompiler
             System.out.println("You need to provide an input code file as the first command line argument");
         }
 
-        Hashtable<Token, Integer> idHashTable = new Hashtable<Token, Integer>();
+        Hashtable<String, Integer> idHashTable = new Hashtable<String, Integer>();
         TokenPreParser preParser = new TokenPreParser(krispCode);
         LinkedList<LinkedList<String>> preParsedCode = preParser.getPreParsedList();
+
+        TokenGenerator tokenGenerator = new TokenGenerator(preParsedCode);
+        LinkedList<LinkedList<Token>> tokenCode = tokenGenerator.generateTokenList();
 
         //Writes compiled code to given file.
         try

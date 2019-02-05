@@ -1,4 +1,5 @@
 import java.util.*;
+import java.util.regex.*;
 
 /**
  * Generates a LinkedList of tokens from a LinkedList of Krisp code
@@ -12,14 +13,12 @@ public class TokenGenerator
 
     /**
      * Uses the linked list of pre parsed string code to generate a list of the individual tokens for intermediate
-     * code generation. Also fills in the symbol list when parsing identifier tokens to help with intermediate code
-     * generation and error analysis
+     * code generation.
      *
      * @param preParsedCode - a linked list of linked lists of strings
-     * @param hashTable - the symbol list for compilation
      * @author Michael Connor
      */
-    public TokenGenerator(LinkedList<LinkedList<String>> preParsedCode, Hashtable hashTable)
+    public TokenGenerator(LinkedList<LinkedList<String>> preParsedCode)
     {
         this.preParsedCode = preParsedCode;
         this.tokenCode = new LinkedList<>();
@@ -27,26 +26,45 @@ public class TokenGenerator
 
     /**
      * Uses the given preparsed code to generate a linked list of token objects which is stored in the tokenCode local
-     * variable
+     * variable. Returns tokenCode linked list.
      *
+     * @return tokenCode - a linked list of individual tokens for intermediate code generation
      * @author Michael Connor
      */
-    public void generateTokenList()
+    public LinkedList<LinkedList<Token>> generateTokenList()
     {
+        LinkedList<Token> tokenLine;
+        Pattern numRegex = Pattern.compile("[0-9]+");
+        Matcher numMatcher;
+        Pattern idRegex = Pattern.compile("(^[a-zA-Z]+)([0-9]*[a-zA-Z]*)*");
+        Matcher idMatcher;
         for(LinkedList<String> line: preParsedCode)
         {
-
+            tokenLine = new LinkedList<>();
+            for(String word: line)
+            {
+                numMatcher = numRegex.matcher(word);
+                idMatcher = idRegex.matcher(word);
+                if(Token.isKey(word))
+                {
+                    tokenLine.add(new KeyToken(word));
+                }
+                else if(numMatcher.matches())
+                {
+                    tokenLine.add(new NumberToken(Integer.parseInt(word)));
+                }
+                else if(idMatcher.matches())
+                {
+                    tokenLine.add(new IdentifierToken(word));
+                }
+                else
+                {
+                    System.err.println("Syntax error. Tokens must start with a character and can contain characters" +
+                            "and numbers only");
+                }
+            }
+            tokenCode.add(tokenLine);
         }
-    }
-
-    /**
-     * Returns the processed list of tokens
-     *
-     * @return tokenCode - processed list of tokens
-     * @author Michael Connor
-     */
-    public LinkedList<LinkedList<Token>> getTokenList()
-    {
         return tokenCode;
     }
 }

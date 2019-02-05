@@ -35,7 +35,7 @@ public class Token
      * @return key - true if key false if not
      * @author Michael Connor
      */
-    public boolean isKey(String str)
+    static public boolean isKey(String str)
     {
         boolean key = false;
         if((str.equals("if")) ||  (str.equals("goto")) || (str.equals("while")) || (str.equals("assign")) ||
