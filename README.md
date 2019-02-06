@@ -1,14 +1,12 @@
 # FrontEndComiler
 A front end compiler I made to practice some central ideas of compilation. This is my first compiler and features were
 added not so much out of necessity for the language, but to sufficiently practice implementing a diverse range of
-compiler concepts. I did not wish to make this into a fully fledged C compiler with all sorts of fancy bells and
-whistles as a lot of concepts are very similar and would have been redundant from an educational point of view.
+compiler concepts without becoming redundant. The language itself is called Krisp! A turing complete language for minimalists. 
 
-It however contains a wide range of compilation features such as boolean and arithmetic expressions, alongside with
-branching statements such as if and when.
+It contains a wide range of compilation features such as boolean and arithmetic expressions, alongside with
+branching statements such as if and when. I will probably add functions in the future when I have a bit more time on my hands.
 
-The language compiled is known by my invention as Krisp and the compiled code is a MIPS-like register based intermediate
-code.
+The compiled code is a MIPS-like register based intermediate code.
 
 Some syntax for Krisp is as follows:
 Assignment statements:
