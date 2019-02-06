@@ -1,5 +1,18 @@
-movc  &v0, @2
-movc  &v1, @4
-movc  &v0, @8
-movr  &v2, $v1
-movr  &v0, $v1
+movc &t0 ,@2
+movc &t1 ,@3
+lltr &%rtr ,$t0 , $t1
+brze $%rtr, @BRANCH0
+movc  &v0, @4
+movr  &v1, $v0
+movc &t0 ,@2
+movc &t1 ,@2
+leqr &%rtr ,$t0 , $t1
+brze $%rtr, @BRANCH1
+movc  &v2, @20
+movr  &v2, $v0
+
+BRANCH1:
+movc  &v3, @40
+
+BRANCH0:
+movc  &v1, @10

@@ -13,6 +13,7 @@ public class IntermediateCodeGenerator
     private int tregCount = 0;
     private final String returnReg = "%rtr";
     private Hashtable<String, Integer> identifierHash;
+    private int branchCount;
 
     /**
      * Initializes local variable tokenCode to linked list of tokens given to the code generator as an argument.
@@ -43,25 +44,79 @@ public class IntermediateCodeGenerator
         while(!tokenCode.isEmpty())
         {
             tokenLine = tokenCode.pop();
+            currentLine++;
             if(tokenLine.size() < 1)
             {
-                System.err.println("Syntax Error");
+                System.err.println("Syntax Error, Line " + Integer.toString(currentLine));
                 System.exit(-1);
             }
             currentToken = tokenLine.pop();
-            if(currentToken.getTokenType().equals("End"))
+            if(currentToken.getTokenType().equals("End") ||
+                    (currentToken.getTokenType().equals("Key")&&((KeyToken)currentToken).getKeyType().equals("}")))
             {
                 break;
             }
-            else if(tokenLine.size() < 1)
+            else if((tokenLine.size() < 1)&&(!currentToken.getTokenType().equals("Key")))
             {
-                System.err.println("Syntax Error");
+                System.err.println("Syntax Error, Line " + Integer.toString(currentLine));
                 System.exit(-1);
             }
             lookaheadToken = tokenLine.pop();
             if (currentToken.getTokenType().equals("Id"))
             {
                 parseAssign();
+                continue;
+            }
+            KeyToken keyToken;
+            if(!currentToken.getTokenType().equals("Key"))
+            {
+                System.err.println("Syntax Error, Line " + Integer.toString(currentLine));
+                System.exit(-1);
+            }
+            keyToken = (KeyToken)currentToken;
+            if(keyToken.getKeyType().equals("if"))
+            {
+                if((!lookaheadToken.getTokenType().equals("Key"))&&(!((KeyToken)lookaheadToken).getKeyType().equals("(")))
+                {
+                    System.err.println("Syntax Error, Line " + Integer.toString(currentLine));
+                    System.exit(-1);
+                }
+                else if(tokenLine.size() < 2)
+                {
+                    System.err.println("Syntax Error, Line " + Integer.toString(currentLine));
+                    System.exit(-1);
+                }
+                currentToken = tokenLine.pop();
+                lookaheadToken = tokenLine.pop();
+                parseBool();
+                if((!currentToken.getTokenType().equals("Key"))&&(!((KeyToken)currentToken).getKeyType().equals(")")))
+                {
+                    System.err.println("Syntax Error, Line " + Integer.toString(currentLine));
+                    System.exit(-1);
+                }
+                assemblyLine++;
+                int currentBranch = branchCount;
+                assemblyCode.add("brze $"+returnReg+", @BRANCH"+Integer.toString(branchCount));
+                branchCount++;
+                if((!lookaheadToken.getTokenType().equals("Key"))&&(!((KeyToken)lookaheadToken).getKeyType().equals("{")))
+                {
+                    System.err.println("Syntax Error, Line " + Integer.toString(currentLine));
+                    System.exit(-1);
+                }
+                if(tokenCode.isEmpty())
+                {
+                    System.err.println("Syntax Error, Line " + Integer.toString(currentLine));
+                    System.exit(-1);
+                }
+                generateAssembly();
+                if((!currentToken.getTokenType().equals("Key"))&&(!((KeyToken)currentToken).getKeyType().equals("}")))
+                {
+                    System.err.println("Syntax Error, Line " + Integer.toString(currentLine));
+                    System.exit(-1);
+                }
+                assemblyCode.add("");
+                assemblyCode.add("BRANCH"+Integer.toString(currentBranch)+":");
+                assemblyLine += 2;
             }
         }
         return assemblyCode;
@@ -103,7 +158,7 @@ public class IntermediateCodeGenerator
         }
         if((!lookaheadToken.getTokenType().equals("Key"))||(tokenLine.isEmpty()))
         {
-            System.out.println("Syntax Error");
+            System.out.println("Syntax Error, Line " + Integer.toString(currentLine));
             System.exit(-1);
         }
         currentToken = lookaheadToken;
@@ -112,7 +167,7 @@ public class IntermediateCodeGenerator
         String lookaheadType = lookaheadToken.getTokenType();
         if((!testToken.getKeyType().equals("assign"))||(!(lookaheadType.equals("Num")||lookaheadType.equals("Id"))))
         {
-            System.out.println("Syntax Error");
+            System.out.println("Syntax Error, Line " + Integer.toString(currentLine));
             System.exit(-1);
         }
         else if(tokenLine.isEmpty())
@@ -129,8 +184,8 @@ public class IntermediateCodeGenerator
                 IdentifierToken idToken = (IdentifierToken)lookaheadToken;
                 if(!identifierHash.containsKey(idToken.getIdentifier()))
                 {
-                    System.out.println("Syntax Error: Declare" + ((IdentifierToken) lookaheadToken).getIdentifier() +
-                            "before using it");
+                    System.out.println("Syntax Error: Declare variable " +
+                            "before using it, Line " + Integer.toString(currentLine));
                     System.exit(-1);
                 }
                 assemblyCode.add("movr  &v" + Integer.toString(assignVariableReg) + ", $v" +
@@ -144,32 +199,262 @@ public class IntermediateCodeGenerator
             lookaheadToken = tokenLine.pop();
             if(!lookaheadToken.getTokenType().equals("Key"))
             {
-                System.out.println("Syntax Error");
+                System.out.println("Syntax Error, Line " + Integer.toString(currentLine));
                 System.exit(-1);
             }
-            KeyToken keyToken = (KeyToken)lookaheadToken;
-            if(Token.isBoolOperator(keyToken.getKeyType()))
+            Stack<Token> tokenStack = new Stack<>();
+            LinkedList<Token> tempTokenLine = new LinkedList<>();
+            for(Token token : tokenLine)
             {
-                parseBool();
-                assemblyCode.add("movr &v" + Integer.toString(assignVariableReg) + ", $"+ returnReg );
-                assemblyLine++;
+                tokenStack.push(token);
             }
+            for(Token token : tokenStack)
+            {
+                tempTokenLine.add(token);
+            }
+            tokenLine = tempTokenLine;
             parseExpression();
-            assemblyCode.add("movr &v" + Integer.toString(assignVariableReg) + ", $"+ returnReg );
+            assemblyCode.add("movr &v" + Integer.toString(assignVariableReg) + ", $" + returnReg);
             assemblyLine++;
         }
     }
 
     /**
      * Used to parse an expression type within the context free grammar of the following form,
-     * expr -> number [+-] expr | identifier [+-] expr
-     * expr -> (expr) | term
+     * expr -> number [+-*\] expr | identifier [+-*\] expr
      *
      * @author Michael Connor
      */
     private void parseExpression()
     {
-
+        Token firstToken = currentToken;
+        NumberToken numToken = null;
+        IdentifierToken idToken = null;
+        boolean isNum = false;
+        if((!firstToken.getTokenType().equals("Num"))&&(!firstToken.getTokenType().equals("Id")))
+        {
+            System.out.println("Syntax Error, Line " + Integer.toString(currentLine));
+            System.exit(-1);
+        }
+        if(firstToken.getTokenType().equals("Num"))
+        {
+            isNum = true;
+            numToken = (NumberToken)firstToken;
+        }
+        else
+        {
+            idToken = (IdentifierToken)firstToken;
+        }
+        KeyToken keyToken = (KeyToken) lookaheadToken;
+        currentToken = lookaheadToken;
+        if(tokenLine.isEmpty())
+        {
+            System.out.println("Syntax Error, Line " + Integer.toString(currentLine));
+            System.exit(-1);
+        }
+        lookaheadToken = tokenLine.pop();
+        if(lookaheadToken.getTokenType().equals("Num"))
+        {
+            NumberToken num1Token = (NumberToken)lookaheadToken;
+            assemblyCode.add("movc &"+returnReg+", @"+Integer.toString(num1Token.getNumber()));
+            assemblyLine++;
+        }
+        else
+        {
+            IdentifierToken id1Token = (IdentifierToken)lookaheadToken;
+            if(!identifierHash.containsKey(id1Token.getIdentifier()))
+            {
+                System.out.println("Syntax Error, Line " + Integer.toString(currentLine));
+                System.exit(-1);
+            }
+            assemblyCode.add("movr &"+returnReg+", $v"+identifierHash.get(id1Token.getIdentifier()));
+            assemblyLine++;
+        }
+        if(tokenLine.isEmpty())
+        {
+            if(keyToken.getKeyType().equals("+"))
+            {
+                if(isNum)
+                {
+                    assemblyCode.add("movc &t0, @" + Integer.toString(numToken.getNumber()));
+                    assemblyCode.add("addr &"+returnReg+", $t0, $"+returnReg);
+                    assemblyLine++;
+                    assemblyLine++;
+                }
+                else
+                {
+                    if(!identifierHash.containsKey(idToken.getIdentifier()))
+                    {
+                        System.out.println("Syntax Error, Line " + Integer.toString(currentLine));
+                        System.exit(-1);
+                    }
+                    assemblyCode.add("addr &"+returnReg+", $v" + identifierHash.get(idToken.getIdentifier())+
+                            ", $"+returnReg);
+                    assemblyLine++;
+                }
+            }
+            else if(keyToken.getKeyType().equals("-"))
+            {
+                if(isNum)
+                {
+                    assemblyCode.add("movc &t0, @" + Integer.toString(numToken.getNumber()));
+                    assemblyCode.add("subr &"+returnReg+", $t0, $"+returnReg);
+                    assemblyLine++;
+                    assemblyLine++;
+                }
+                else
+                {
+                    if(!identifierHash.containsKey(idToken.getIdentifier()))
+                    {
+                        System.out.println("Syntax Error, Line " + Integer.toString(currentLine));
+                        System.exit(-1);
+                    }
+                    assemblyCode.add("subr &"+returnReg+", $v" + identifierHash.get(idToken.getIdentifier())+
+                            ", $"+returnReg);
+                    assemblyLine++;
+                }
+            }
+            else if(keyToken.getKeyType().equals("*"))
+            {
+                if(isNum)
+                {
+                    assemblyCode.add("movc &t0, @" + Integer.toString(numToken.getNumber()));
+                    assemblyCode.add("mulr &"+returnReg+", $t0, $"+returnReg);
+                    assemblyLine++;
+                    assemblyLine++;
+                }
+                else
+                {
+                    if(!identifierHash.containsKey(idToken.getIdentifier()))
+                    {
+                        System.out.println("Syntax Error, Line " + Integer.toString(currentLine));
+                        System.exit(-1);
+                    }
+                    assemblyCode.add("mulr &"+returnReg+", $v" + identifierHash.get(idToken.getIdentifier())+
+                            ", $"+returnReg);
+                    assemblyLine++;
+                }
+            }
+            else if(keyToken.getKeyType().equals("/"))
+            {
+                if(isNum)
+                {
+                    assemblyCode.add("movc &t0, @" + Integer.toString(numToken.getNumber()));
+                    assemblyCode.add("divr &"+returnReg+", $t0, $"+returnReg);
+                    assemblyLine++;
+                    assemblyLine++;
+                }
+                else
+                {
+                    if(!identifierHash.containsKey(idToken.getIdentifier()))
+                    {
+                        System.out.println("Syntax Error, Line " + Integer.toString(currentLine));
+                        System.exit(-1);
+                    }
+                    assemblyCode.add("divr &"+returnReg+", $v" + identifierHash.get(idToken.getIdentifier())+
+                            ", $"+returnReg);
+                    assemblyLine++;
+                }
+            }
+            else
+            {
+                System.out.println("Syntax Error, Line " + Integer.toString(currentLine));
+                System.exit(-1);
+            }
+            return;
+        }
+        currentToken = lookaheadToken;
+        lookaheadToken = tokenLine.pop();
+        parseExpression();
+        if(keyToken.getKeyType().equals("+"))
+        {
+            if(isNum)
+            {
+                assemblyCode.add("movc &t0, @" + Integer.toString(numToken.getNumber()));
+                assemblyCode.add("addr &"+returnReg+", $t0, $"+returnReg);
+                assemblyLine++;
+                assemblyLine++;
+            }
+            else
+            {
+                if(!identifierHash.containsKey(idToken.getIdentifier()))
+                {
+                    System.out.println("Syntax Error, Line " + Integer.toString(currentLine));
+                    System.exit(-1);
+                }
+                assemblyCode.add("addr &"+returnReg+", $v" + identifierHash.get(idToken.getIdentifier())+
+                        ", $"+returnReg);
+                assemblyLine++;
+            }
+        }
+        else if(keyToken.getKeyType().equals("-"))
+        {
+            if(isNum)
+            {
+                assemblyCode.add("movc &t0, @" + Integer.toString(numToken.getNumber()));
+                assemblyCode.add("subr &"+returnReg+", $t0, $"+returnReg);
+                assemblyLine++;
+                assemblyLine++;
+            }
+            else
+            {
+                if(!identifierHash.containsKey(idToken.getIdentifier()))
+                {
+                    System.out.println("Syntax Error, Line " + Integer.toString(currentLine));
+                    System.exit(-1);
+                }
+                assemblyCode.add("subr &"+returnReg+", $v" + identifierHash.get(idToken.getIdentifier())+
+                        ", $"+returnReg);
+                assemblyLine++;
+            }
+        }
+        else if(keyToken.getKeyType().equals("*"))
+        {
+            if(isNum)
+            {
+                assemblyCode.add("movc &t0, @" + Integer.toString(numToken.getNumber()));
+                assemblyCode.add("mulr &"+returnReg+", $t0, $"+returnReg);
+                assemblyLine++;
+                assemblyLine++;
+            }
+            else
+            {
+                if(!identifierHash.containsKey(idToken.getIdentifier()))
+                {
+                    System.out.println("Syntax Error, Line " + Integer.toString(currentLine));
+                    System.exit(-1);
+                }
+                assemblyCode.add("mulr &"+returnReg+", $v" + identifierHash.get(idToken.getIdentifier())+
+                        ", $"+returnReg);
+                assemblyLine++;
+            }
+        }
+        else if(keyToken.getKeyType().equals("/"))
+        {
+            if(isNum)
+            {
+                assemblyCode.add("movc &t0, @" + Integer.toString(numToken.getNumber()));
+                assemblyCode.add("divr &"+returnReg+", $t0, $"+returnReg);
+                assemblyLine++;
+                assemblyLine++;
+            }
+            else
+            {
+                if(!identifierHash.containsKey(idToken.getIdentifier()))
+                {
+                    System.out.println("Syntax Error, Line " + Integer.toString(currentLine));
+                    System.exit(-1);
+                }
+                assemblyCode.add("divr &"+returnReg+", $v" + identifierHash.get(idToken.getIdentifier())+
+                        ", $"+returnReg);
+                assemblyLine++;
+            }
+        }
+        else
+        {
+            System.out.println("Syntax Error, Line " + Integer.toString(currentLine));
+            System.exit(-1);
+        }
     }
 
     /**
@@ -182,6 +467,218 @@ public class IntermediateCodeGenerator
      */
     private void parseBool()
     {
-
+        NumberToken numToken;
+        KeyToken keyToken;
+        IdentifierToken idToken;
+        if(currentToken.getTokenType().equals("Key"))
+        {
+            keyToken = (KeyToken)currentToken;
+            if(!keyToken.getKeyType().equals("("))
+            {
+                System.out.println("Syntax Error, Line " +
+                        Integer.toString(currentLine));
+                System.exit(-1);
+            }
+            else if(tokenLine.isEmpty())
+            {
+                System.out.println("Syntax Error, Line " +
+                        Integer.toString(currentLine));
+                System.exit(-1);
+            }
+            currentToken = lookaheadToken;
+            lookaheadToken = tokenLine.pop();
+            parseBool();
+            if(!currentToken.getTokenType().equals("Key"))
+            {
+                System.out.println("Syntax Error, Line " +
+                        Integer.toString(currentLine));
+                System.exit(-1);
+            }
+            keyToken = (KeyToken)currentToken;
+            if(!keyToken.getKeyType().equals(")"))
+            {
+                System.out.println("Syntax Error, Line " +
+                        Integer.toString(currentLine));
+                System.exit(-1);
+            }
+            if(lookaheadToken.getTokenType().equals("Key"))
+            {
+                keyToken = (KeyToken)lookaheadToken;
+                if(Token.isBoolOperator(keyToken.getKeyType()))
+                {
+                    if(tokenLine.isEmpty())
+                    {
+                        System.out.println("Syntax Error, Line " +
+                                Integer.toString(currentLine));
+                        System.exit(-1);
+                    }
+                    currentToken = tokenLine.pop();
+                    if(tokenLine.isEmpty())
+                    {
+                        System.out.println("Syntax Error, Line " +
+                                Integer.toString(currentLine));
+                        System.exit(-1);
+                    }
+                    lookaheadToken = tokenLine.pop();
+                    assemblyCode.add("spush $" + returnReg);
+                    assemblyLine++;
+                    parseBool();
+                    assemblyCode.add("spop &t0");
+                    assemblyLine++;
+                    assemblyCode.add("movr &t1 ,$" + returnReg);
+                    assemblyLine++;
+                    if(keyToken.getKeyType().equals("="))
+                    {
+                        assemblyCode.add("leqr &" + returnReg + " ,$t0 , $t1");
+                        assemblyLine++;
+                    }
+                    else if(keyToken.getKeyType().equals("<"))
+                    {
+                        assemblyCode.add("lltr &" + returnReg + " ,$t0 , $t1");
+                        assemblyLine++;
+                    }
+                    else if(keyToken.getKeyType().equals(">"))
+                    {
+                        assemblyCode.add("lgtr &" + returnReg + " ,$t0 , $t1");
+                        assemblyLine++;
+                    }
+                    else if(keyToken.getKeyType().equals("and"))
+                    {
+                        assemblyCode.add("land &" + returnReg + " ,$t0 , $t1");
+                        assemblyLine++;
+                    }
+                    else if(keyToken.getKeyType().equals("or"))
+                    {
+                        assemblyCode.add("lor &" + returnReg + " ,$t0 , $t1");
+                        assemblyLine++;
+                    }
+                    else if(keyToken.getKeyType().equals("nand"))
+                    {
+                        assemblyCode.add("lndn &" + returnReg + " ,$t0 , $t1");
+                        assemblyLine++;
+                    }
+                    else if(keyToken.getKeyType().equals("nor"))
+                    {
+                        assemblyCode.add("lnor &" + returnReg + " ,$t0 , $t1");
+                        assemblyLine++;
+                    }
+                    if(!tokenLine.isEmpty())
+                    {
+                        currentToken = tokenLine.pop();
+                        if(!tokenLine.isEmpty())
+                        {
+                            lookaheadToken = tokenLine.pop();
+                        }
+                    }
+                }
+                else
+                {
+                    System.out.println("Syntax Error, Line " +
+                            Integer.toString(currentLine));
+                    System.exit(-1);
+                }
+            }
+        }
+        else if(currentToken.getTokenType().equals("Num")||currentToken.getTokenType().equals("Id"))
+        {
+            if(currentToken.getTokenType().equals("Num"))
+            {
+                numToken = (NumberToken)currentToken;
+                assemblyCode.add("movc &t0 ,@" + Integer.toString(numToken.getNumber()));
+                assemblyLine++;
+            }
+            else
+            {
+                idToken = (IdentifierToken)currentToken;
+                if(!identifierHash.containsKey(idToken.getIdentifier()))
+                {
+                    System.out.println("Syntax Error Assign Variable Before Use, Line " +
+                            Integer.toString(currentLine));
+                    System.exit(-1);
+                }
+                assemblyCode.add("movr &t0 ,$" + identifierHash.get(idToken.getIdentifier()));
+                assemblyLine++;
+            }
+            keyToken = (KeyToken) lookaheadToken;
+            if(!Token.isBoolOperator(keyToken.getKeyType()))
+            {
+                System.out.println("Syntax Error Line " + Integer.toString(currentLine));
+                System.exit(-1);
+            }
+            currentToken = lookaheadToken;
+            lookaheadToken = tokenLine.pop();
+            if(!(lookaheadToken.getTokenType().equals("Num")||lookaheadToken.getTokenType().equals("Id")))
+            {
+                System.out.println("Syntax Error Line " + Integer.toString(currentLine));
+                System.exit(-1);
+            }
+            if(lookaheadToken.getTokenType().equals("Num"))
+            {
+                numToken = (NumberToken)lookaheadToken;
+                assemblyCode.add("movc &t1 ,@" + Integer.toString(numToken.getNumber()));
+                assemblyLine++;
+            }
+            else
+            {
+                idToken = (IdentifierToken)lookaheadToken;
+                if(!identifierHash.containsKey(idToken.getIdentifier()))
+                {
+                    System.out.println("Syntax Error Assign Variable Before Use, Line " +
+                            Integer.toString(currentLine));
+                    System.exit(-1);
+                }
+                assemblyCode.add("movr &t1 ,$" + identifierHash.get(idToken.getIdentifier()));
+                assemblyLine++;
+            }
+            keyToken = (KeyToken)currentToken;
+            if(keyToken.getKeyType().equals("="))
+            {
+                assemblyCode.add("leqr &" + returnReg + " ,$t0 , $t1");
+                assemblyLine++;
+            }
+            else if(keyToken.getKeyType().equals("<"))
+            {
+                assemblyCode.add("lltr &" + returnReg + " ,$t0 , $t1");
+                assemblyLine++;
+            }
+            else if(keyToken.getKeyType().equals(">"))
+            {
+                assemblyCode.add("lgtr &" + returnReg + " ,$t0 , $t1");
+                assemblyLine++;
+            }
+            else if(keyToken.getKeyType().equals("and"))
+            {
+                assemblyCode.add("land &" + returnReg + " ,$t0 , $t1");
+                assemblyLine++;
+            }
+            else if(keyToken.getKeyType().equals("or"))
+            {
+                assemblyCode.add("lor &" + returnReg + " ,$t0 , $t1");
+                assemblyLine++;
+            }
+            else if(keyToken.getKeyType().equals("nand"))
+            {
+                assemblyCode.add("lndn &" + returnReg + " ,$t0 , $t1");
+                assemblyLine++;
+            }
+            else if(keyToken.getKeyType().equals("nor"))
+            {
+                assemblyCode.add("lnor &" + returnReg + " ,$t0 , $t1");
+                assemblyLine++;
+            }
+            if(!tokenLine.isEmpty())
+            {
+                currentToken = tokenLine.pop();
+                if(!tokenLine.isEmpty())
+                {
+                    lookaheadToken = tokenLine.pop();
+                }
+            }
+        }
+        else
+        {
+            System.out.println("Syntax Error Line " + Integer.toString(currentLine));
+            System.exit(-1);
+        }
     }
 }

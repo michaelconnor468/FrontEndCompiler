@@ -1,5 +1,10 @@
-abc assign 2
-b assign 4
-abc assign 8
-tr assign b
-abc assign b
+if ( 2 < 3 ) {
+a assign 4
+b assign a
+if ( 2 = 2 ) {
+abc assign 20
+abc assign a
+}
+to assign 40
+}
+b assign 10
