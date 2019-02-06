@@ -1,18 +1,29 @@
+movc &%rtr, @5
+movc &t0, @4
+mulr &%rtr, $t0, $%rtr
+movr &v0, $%rtr
 movc &t0 ,@2
-movc &t1 ,@3
-lltr &%rtr ,$t0 , $t1
-brze $%rtr, @BRANCH0
-movc  &v0, @4
-movr  &v1, $v0
-movc &t0 ,@2
-movc &t1 ,@2
+movr &t1 ,$0
 leqr &%rtr ,$t0 , $t1
-brze $%rtr, @BRANCH1
-movc  &v2, @20
-movr  &v2, $v0
-
-BRANCH1:
-movc  &v3, @40
 
 BRANCH0:
-movc  &v1, @10
+movr &t0 ,$0
+movc &t1 ,@2
+lltr &%rtr ,$t0 , $t1
+brze $%rtr, @BRANCH1
+movc &%rtr, @2
+movr &%rtr, $v0
+movc &t0, @2
+mulr &%rtr, $t0, $%rtr
+addr &%rtr, $v0, $%rtr
+movr &v1, $%rtr
+
+BRANCH1:
+movr &%rtr, $v0
+movc &t0, @4
+mulr &%rtr, $t0, $%rtr
+movr &v0, $%rtr
+brze $%rtr, @BRANCH0
+movr &%rtr, $v1
+mulr &%rtr, $v0, $%rtr
+movr &v2, $%rtr

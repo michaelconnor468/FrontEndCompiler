@@ -1,10 +1,8 @@
-if ( 2 < 3 ) {
-a assign 4
-b assign a
-if ( 2 = 2 ) {
-abc assign 20
-abc assign a
+a assign 4 * 5
+while ( 2 = a ) {
+    if ( a < 2 ) {
+    b assign a + 2 * a
+    }
+    a assign 4 * a
 }
-to assign 40
-}
-b assign 10
+c assign a * b

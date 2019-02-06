@@ -118,6 +118,50 @@ public class IntermediateCodeGenerator
                 assemblyCode.add("BRANCH"+Integer.toString(currentBranch)+":");
                 assemblyLine += 2;
             }
+            else if(keyToken.getKeyType().equals("while"))
+            {
+                if((!lookaheadToken.getTokenType().equals("Key"))&&(!((KeyToken)lookaheadToken).getKeyType().equals("(")))
+                {
+                    System.err.println("Syntax Error, Line " + Integer.toString(currentLine));
+                    System.exit(-1);
+                }
+                else if(tokenLine.size() < 2)
+                {
+                    System.err.println("Syntax Error, Line " + Integer.toString(currentLine));
+                    System.exit(-1);
+                }
+                currentToken = tokenLine.pop();
+                lookaheadToken = tokenLine.pop();
+                parseBool();
+                if((!currentToken.getTokenType().equals("Key"))&&(!((KeyToken)currentToken).getKeyType().equals(")")))
+                {
+                    System.err.println("Syntax Error, Line " + Integer.toString(currentLine));
+                    System.exit(-1);
+                }
+                int currentBranch = branchCount;
+                branchCount++;
+                assemblyCode.add("");
+                assemblyCode.add("BRANCH"+Integer.toString(currentBranch)+":");
+                assemblyLine += 2;
+                if((!lookaheadToken.getTokenType().equals("Key"))&&(!((KeyToken)lookaheadToken).getKeyType().equals("{")))
+                {
+                    System.err.println("Syntax Error, Line " + Integer.toString(currentLine));
+                    System.exit(-1);
+                }
+                if(tokenCode.isEmpty())
+                {
+                    System.err.println("Syntax Error, Line " + Integer.toString(currentLine));
+                    System.exit(-1);
+                }
+                generateAssembly();
+                if((!currentToken.getTokenType().equals("Key"))&&(!((KeyToken)currentToken).getKeyType().equals("}")))
+                {
+                    System.err.println("Syntax Error, Line " + Integer.toString(currentLine));
+                    System.exit(-1);
+                }
+                assemblyLine++;
+                assemblyCode.add("brze $"+returnReg+", @BRANCH"+Integer.toString(currentBranch));
+            }
         }
         return assemblyCode;
     }
