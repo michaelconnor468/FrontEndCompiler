@@ -1,4 +1,8 @@
 # FrontEndComiler
+//TODO Refactor IntermediateCodeGenerator - way too bloated
+//TODO Fix bug with compound boolean expressions
+//TODO change pre parser to be more forgiving to spaces
+
 A compiler I made to practice some central ideas of compilation. This is my first compiler and features were
 added not so much out of necessity for the language, but to sufficiently practice implementing a diverse range of
 compiler concepts without becoming redundant. The language itself is called Krisp! A turing complete language for minimalists. 
