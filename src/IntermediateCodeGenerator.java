@@ -259,7 +259,7 @@ public class IntermediateCodeGenerator
             }
             tokenLine = tempTokenLine;
             parseExpression();
-            assemblyCode.add("movr &v" + Integer.toString(assignVariableReg) + ", $" + returnReg);
+            assemblyCode.add("movr &v" + Integer.toString(assignVariableReg) + ", $v" + returnReg);
             assemblyLine++;
         }
     }
