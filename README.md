@@ -6,9 +6,9 @@ compiler concepts without becoming redundant. The language itself is called Kris
 It contains a wide range of compilation features such as boolean and arithmetic expressions, alongside with
 branching statements such as if and when. I will probably add functions in the future when I have a bit more time on my hands.
 
-The compiled code is a MIPS-like register based intermediate code.
+The compiled code is a MIPS-x86 hybrid register based intermediate code. I chosse this as I believed it would make translating to both ARM or x86-64 easier at the back end.
 
-Some syntax for Krisp is as follows:
+Some syntax for Krisp is as follows (mind the spacing!):
 Assignment statements:
 
 a assign b
